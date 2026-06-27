@@ -119,12 +119,12 @@ if income_file and expense_file:
         if total_income != 0 else 0
     )
 
-    # ==========================
-    # KPI CARDS
-    # ==========================
-    st.subheader("Executive Summary")
+# ==========================
+# KPI CARDS
+# ==========================
+st.subheader("Executive Summary")
 
-    c1, c2, c3, c4 = st.columns(4)
+c1, c2, c3, c4 = st.columns(4)
 
 c1.metric(
     "💚 Total Income",
@@ -145,70 +145,90 @@ c4.metric(
     "🟨 Surplus Margin %",
     f"{surplus_margin:.2f}%"
 )
-    # ==========================
-    # CHARTS
-    # ==========================
-    c1, c2 = st.columns(2)
 
-    with c1:
+# ==========================
+# MONTHLY DATA
+# ==========================
+pnl = pd.DataFrame({
+    'Month': months,
+    'Income': income_totals.values,
+    'Expenses': expense_totals.values,
+    'Surplus': surplus.values
+})
 
-        fig = px.bar(
-    pnl,
-    x='Month',
-    y=['Income', 'Expenses'],
-    barmode='group',
-    color_discrete_sequence=[
-        '#2ECC71',
-        '#E74C3C'
-    ],
-    title='Monthly Income vs Expenses'
-)
+# ==========================
+# CHARTS
+# ==========================
+c1, c2 = st.columns(2)
 
-fig.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(size=14),
-    height=500
-)
+with c1:
 
-    with c2:
-
-       fig2 = px.line(
-    pnl,
-    x='Month',
-    y='Surplus',
-    markers=True,
-    title='Monthly Surplus Trend'
-)
-
-fig2.update_traces(
-    line=dict(
-        color='#3498DB',
-        width=5
+    fig = px.bar(
+        pnl,
+        x='Month',
+        y=['Income', 'Expenses'],
+        barmode='group',
+        color_discrete_sequence=[
+            '#2ECC71',
+            '#E74C3C'
+        ],
+        title='Monthly Income vs Expenses'
     )
-)
 
-fig2.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
-    height=500
-)
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        height=500
+    )
 
-    # ==========================
-    # TOP 10 EXPENSE HEADS
-    # ==========================
-    expense['Total'] = expense[months].sum(axis=1)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
-    top10 = (
-        expense[['Account', 'Total']]
-        .sort_values(
-            'Total',
-            ascending=False
+with c2:
+
+    fig2 = px.line(
+        pnl,
+        x='Month',
+        y='Surplus',
+        markers=True,
+        title='Monthly Surplus Trend'
+    )
+
+    fig2.update_traces(
+        line=dict(
+            color='#3498DB',
+            width=5
         )
-        .head(10)
     )
 
-   fig3 = px.bar(
+    fig2.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        height=500
+    )
+
+    st.plotly_chart(
+        fig2,
+        use_container_width=True
+    )
+
+# ==========================
+# TOP 10 EXPENSE HEADS
+# ==========================
+expense['Total'] = expense[months].sum(axis=1)
+
+top10 = (
+    expense[['Account', 'Total']]
+    .sort_values(
+        'Total',
+        ascending=False
+    )
+    .head(10)
+)
+
+fig3 = px.bar(
     top10,
     x='Total',
     y='Account',
@@ -224,10 +244,10 @@ fig3.update_layout(
     paper_bgcolor='rgba(0,0,0,0)'
 )
 
-    st.plotly_chart(
-        fig3,
-        use_container_width=True
-    )
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
 
     # ==========================
     # MONTHLY P&L TABLE
@@ -236,7 +256,7 @@ fig3.update_layout(
     "📋 Monthly Budgeted Profit & Loss Statement"
 )
 
-st.dataframe(
+    st.dataframe(
     pnl.style.format({
         'Income':'{:,.0f}',
         'Expenses':'{:,.0f}',
