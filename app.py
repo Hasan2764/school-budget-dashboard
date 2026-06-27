@@ -47,11 +47,6 @@ st.markdown(
 # ==========================
 with st.sidebar:
 
-    st.image(
-        "https://img.icons8.com/fluency/96/dashboard-layout.png",
-        width=80
-    )
-
     st.markdown("## 📊 Budget Dashboard")
 
     st.markdown(
@@ -66,12 +61,12 @@ with st.sidebar:
 
     income_file = st.file_uploader(
         "💚 Income Budget File",
-        type="xlsx"
+        type=["xlsx"]
     )
 
     expense_file = st.file_uploader(
         "❤️ Expense Budget File",
-        type="xlsx"
+        type=["xlsx"]
     )
 
     st.markdown("---")
@@ -108,6 +103,7 @@ if income_file and expense_file:
 
     income_totals = income[months].sum()
     expense_totals = expense[months].sum()
+
     surplus = income_totals - expense_totals
 
     total_income = income_totals.sum()
@@ -119,139 +115,124 @@ if income_file and expense_file:
         if total_income != 0 else 0
     )
 
-# ==========================
-# KPI CARDS
-# ==========================
-st.subheader("Executive Summary")
+    st.subheader("Executive Summary")
 
-c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-c1.metric(
-    "💚 Total Income",
-    f"{total_income:,.0f}"
-)
-
-c2.metric(
-    "❤️ Total Expenses",
-    f"{total_expense:,.0f}"
-)
-
-c3.metric(
-    "💙 Budgeted Surplus",
-    f"{total_surplus:,.0f}"
-)
-
-c4.metric(
-    "🟨 Surplus Margin %",
-    f"{surplus_margin:.2f}%"
-)
-
-# ==========================
-# MONTHLY DATA
-# ==========================
-pnl = pd.DataFrame({
-    'Month': months,
-    'Income': income_totals.values,
-    'Expenses': expense_totals.values,
-    'Surplus': surplus.values
-})
-
-# ==========================
-# CHARTS
-# ==========================
-c1, c2 = st.columns(2)
-
-with c1:
-
-    fig = px.bar(
-        pnl,
-        x='Month',
-        y=['Income', 'Expenses'],
-        barmode='group',
-        color_discrete_sequence=[
-            '#2ECC71',
-            '#E74C3C'
-        ],
-        title='Monthly Income vs Expenses'
+    c1.metric(
+        "💚 Total Income",
+        f"{total_income:,.0f}"
     )
 
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=500
+    c2.metric(
+        "❤️ Total Expenses",
+        f"{total_expense:,.0f}"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
+    c3.metric(
+        "💙 Budgeted Surplus",
+        f"{total_surplus:,.0f}"
     )
 
-with c2:
-
-    fig2 = px.line(
-        pnl,
-        x='Month',
-        y='Surplus',
-        markers=True,
-        title='Monthly Surplus Trend'
+    c4.metric(
+        "🟨 Surplus Margin %",
+        f"{surplus_margin:.2f}%"
     )
 
-    fig2.update_traces(
-        line=dict(
-            color='#3498DB',
-            width=5
+    pnl = pd.DataFrame({
+        'Month': months,
+        'Income': income_totals.values,
+        'Expenses': expense_totals.values,
+        'Surplus': surplus.values
+    })
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        fig = px.bar(
+            pnl,
+            x='Month',
+            y=['Income', 'Expenses'],
+            barmode='group',
+            color_discrete_sequence=[
+                '#2ECC71',
+                '#E74C3C'
+            ],
+            title='Monthly Income vs Expenses'
         )
+
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            height=500
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+    with col2:
+
+        fig2 = px.line(
+            pnl,
+            x='Month',
+            y='Surplus',
+            markers=True,
+            title='Monthly Surplus Trend'
+        )
+
+        fig2.update_traces(
+            line=dict(
+                color='#3498DB',
+                width=5
+            )
+        )
+
+        fig2.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            height=500
+        )
+
+        st.plotly_chart(
+            fig2,
+            use_container_width=True
+        )
+
+    expense['Total'] = expense[months].sum(axis=1)
+
+    top10 = (
+        expense[['Account', 'Total']]
+        .sort_values(
+            'Total',
+            ascending=False
+        )
+        .head(10)
     )
 
-    fig2.update_layout(
+    fig3 = px.bar(
+        top10,
+        x='Total',
+        y='Account',
+        orientation='h',
+        color='Total',
+        color_continuous_scale='Reds',
+        title='Top 10 Expense Heads'
+    )
+
+    fig3.update_layout(
+        height=550,
         plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=500
+        paper_bgcolor='rgba(0,0,0,0)'
     )
 
     st.plotly_chart(
-        fig2,
+        fig3,
         use_container_width=True
     )
 
-# ==========================
-# TOP 10 EXPENSE HEADS
-# ==========================
-expense['Total'] = expense[months].sum(axis=1)
-
-top10 = (
-    expense[['Account', 'Total']]
-    .sort_values(
-        'Total',
-        ascending=False
-    )
-    .head(10)
-)
-
-fig3 = px.bar(
-    top10,
-    x='Total',
-    y='Account',
-    orientation='h',
-    color='Total',
-    color_continuous_scale='Reds',
-    title='Top 10 Expense Heads'
-)
-
-fig3.update_layout(
-    height=550,
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)'
-)
-
-st.plotly_chart(
-    fig3,
-    use_container_width=True
-)
-
-        # ==========================
-    # MONTHLY P&L TABLE
-    # ==========================
     st.subheader(
         "📋 Monthly Budgeted Profit & Loss Statement"
     )
@@ -265,102 +246,82 @@ st.plotly_chart(
         use_container_width=True
     )
 
-    # ==========================
-    # DOWNLOAD P&L
-    # ==========================
     output = BytesIO()
 
     with pd.ExcelWriter(
-    output,
-    engine='xlsxwriter'
-) as writer:
+        output,
+        engine='xlsxwriter'
+    ) as writer:
 
-    pnl.to_excel(
-        writer,
-        sheet_name='Budgeted P&L',
-        startrow=3,
-        index=False
-    )
-
-    workbook = writer.book
-    worksheet = writer.sheets['Budgeted P&L']
-
-    title = workbook.add_format({
-        'bold':True,
-        'font_size':18,
-        'bg_color':'#1F4E78',
-        'font_color':'white',
-        'align':'center',
-        'valign':'vcenter'
-    })
-
-    header = workbook.add_format({
-        'bold':True,
-        'bg_color':'#D9EAD3',
-        'border':1
-    })
-
-    money = workbook.add_format({
-        'num_format':'#,##0',
-        'border':1
-    })
-
-    total_format = workbook.add_format({
-        'bold':True,
-        'bg_color':'#BDD7EE',
-        'num_format':'#,##0',
-        'border':1
-    })
-
-    worksheet.merge_range(
-        'A1:D1',
-        'USMAN PUBLIC SCHOOL SYSTEM - Campus 45',
-        title
-    )
-
-    worksheet.merge_range(
-        'A2:D2',
-        'Annual Budget FY 2026-27',
-        title
-    )
-
-    for col_num, value in enumerate(pnl.columns.values):
-        worksheet.write(
-            3,
-            col_num,
-            value,
-            header
+        pnl.to_excel(
+            writer,
+            sheet_name='Budgeted P&L',
+            startrow=3,
+            index=False
         )
 
-    worksheet.set_column('A:A',20)
-    worksheet.set_column('B:D',22)
+        workbook = writer.book
+        worksheet = writer.sheets['Budgeted P&L']
 
-    total_row = len(pnl) + 4
+        title = workbook.add_format({
+            'bold': True,
+            'font_size': 18,
+            'bg_color': '#1F4E78',
+            'font_color': 'white',
+            'align': 'center'
+        })
 
-    worksheet.write(
-        total_row,
-        0,
-        'Annual Total',
-        total_format
-    )
+        total_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#BDD7EE',
+            'num_format': '#,##0'
+        })
 
-    worksheet.write(
-        total_row,
-        1,
-        pnl['Income'].sum(),
-        total_format
-    )
+        worksheet.merge_range(
+            'A1:D1',
+            'USMAN PUBLIC SCHOOL SYSTEM - Campus 45',
+            title
+        )
 
-    worksheet.write(
-        total_row,
-        2,
-        pnl['Expenses'].sum(),
-        total_format
-    )
+        worksheet.merge_range(
+            'A2:D2',
+            'Annual Budget FY 2026-27',
+            title
+        )
 
-    worksheet.write(
-        total_row,
-        3,
-        pnl['Surplus'].sum(),
-        total_format
+        total_row = len(pnl) + 4
+
+        worksheet.write(
+            total_row,
+            0,
+            'Annual Total',
+            total_format
+        )
+
+        worksheet.write(
+            total_row,
+            1,
+            pnl['Income'].sum(),
+            total_format
+        )
+
+        worksheet.write(
+            total_row,
+            2,
+            pnl['Expenses'].sum(),
+            total_format
+        )
+
+        worksheet.write(
+            total_row,
+            3,
+            pnl['Surplus'].sum(),
+            total_format
+        )
+
+    st.download_button(
+        label="📥 Download Budgeted P&L",
+        data=output.getvalue(),
+        file_name="Budgeted_PnL.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
