@@ -249,21 +249,21 @@ st.plotly_chart(
     use_container_width=True
 )
 
-    # ==========================
+        # ==========================
     # MONTHLY P&L TABLE
     # ==========================
-   st.subheader(
-    "📋 Monthly Budgeted Profit & Loss Statement"
-)
+    st.subheader(
+        "📋 Monthly Budgeted Profit & Loss Statement"
+    )
 
     st.dataframe(
-    pnl.style.format({
-        'Income':'{:,.0f}',
-        'Expenses':'{:,.0f}',
-        'Surplus':'{:,.0f}'
-    }),
-    use_container_width=True
-)
+        pnl.style.format({
+            'Income': '{:,.0f}',
+            'Expenses': '{:,.0f}',
+            'Surplus': '{:,.0f}'
+        }),
+        use_container_width=True
+    )
 
     # ==========================
     # DOWNLOAD P&L
